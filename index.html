@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>ONU Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="bar">
+        <div class="brand">ONU Tools<small>ZTE OLT</small></div>
+        <div class="sw">
+          <label for="view" style="margin: 0">Tampilan</label>
+          <button id="acsbtn" type="button">Setting ACS</button>
+          <select id="view">
+            <option value="gen">ONU Config Generator</option>
+            <option value="batch">Batch TR69</option>
+          </select>
+        </div>
+      </div>
+      <div class="acspanel" id="acspanel" hidden>
+        <div class="inner">
+          <div class="g">
+            <div class="w">
+              <label>ACS URL</label
+              ><input id="acs_url" placeholder="http://acs.example.com:7547" autocomplete="off" />
+            </div>
+            <div><label>ACS username</label><input id="acs_user" autocomplete="off" /></div>
+            <div>
+              <label>ACS password</label><input id="acs_pass" type="password" autocomplete="off" />
+            </div>
+          </div>
+          <div class="m">Disimpan di browser ini saja, tidak ada di source code.</div>
+        </div>
+      </div>
+    </header>
+    <main>
+      <section id="v1">
+        <p class="lead">
+          Isi form di kiri, copy hasilnya di kanan, lalu paste ke terminal OLT di prompt
+          <code>(config)#</code>.
+        </p>
+
+        <div class="note">
+          <b>Catatan:</b> kalau SN masih uncfg, cek dulu ONU ID yang masih kosong di PON port-nya:
+          <code>show gpon onu state gpon-olt_&lt;rack&gt;/&lt;slot&gt;/&lt;port&gt;</code>, lalu isi
+          ONU ID di form.
+        </div>
+
+        <div class="card">
+          <h2>Lokasi ONU</h2>
+          <label class="ck" style="margin: 0 0 12px"
+            ><input type="checkbox" id="newonu" checked /> ONU baru (uncfg): ikut daftarin ke OLT.
+            Uncheck kalau sudah terdaftar dan cuma ganti data</label
+          >
+          <div class="g">
+            <div class="c3">
+              <label>Rack</label><input id="rack" value="1" inputmode="numeric" />
+            </div>
+            <div class="c3">
+              <label>Slot</label><input id="slot" value="1" inputmode="numeric" />
+            </div>
+            <div class="c3"><label>PON port</label><input id="port" inputmode="numeric" /></div>
+            <div class="c3"><label>ONU ID</label><input id="onu" inputmode="numeric" /></div>
+            <div class="w">
+              <label>SN ONU (wajib kalau ONU baru)</label
+              ><input id="sn" autocapitalize="characters" placeholder="ZTEGxxxxxxxx" />
+            </div>
+            <div class="w">
+              <label>Type ONU</label
+              ><select id="type">
+                <option value="ZTEG-F670" selected>ZTEG-F670</option>
+                <option value="ZTEG-F660">ZTEG-F660</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Pelanggan</h2>
+          <div class="g">
+            <div class="c6"><label>Name</label><input id="name" placeholder="W36/27" /></div>
+            <div class="c6"><label>Description</label><input id="desc" placeholder="AMC SN" /></div>
+            <div class="c4">
+              <label>Upstream (Mbps)</label><input id="up" inputmode="numeric" placeholder="100" />
+            </div>
+            <div class="c4">
+              <label>Downstream (Mbps)</label
+              ><input id="down" inputmode="numeric" placeholder="100" />
+            </div>
+            <div class="c4">
+              <label>VLAN internet</label><input id="vlan" inputmode="numeric" placeholder="302" />
+            </div>
+            <div class="c6">
+              <label>PPPoE username</label><input id="pu" autocapitalize="off" />
+            </div>
+            <div class="c6">
+              <label>PPPoE password</label><input id="pp" autocapitalize="off" />
+            </div>
+          </div>
+          <label class="ck"
+            ><input type="checkbox" id="tr" checked /> Pakai TR69 / ACS (tcont 2, VLAN 100,
+            ACS)</label
+          >
+        </div>
+
+        <div class="card out">
+          <h2>Hasil</h2>
+          <pre id="out">Isi form dulu...</pre>
+          <div class="btns">
+            <button class="p" id="copy">Copy semua</button>
+          </div>
+        </div>
+      </section>
+      <section id="v2" hidden>
+        <div class="note">
+          <b>Cara ambil data</b>
+          <ol>
+            <li>
+              Di OLT jalankan <code>show gpon onu state</code>, copy semua hasilnya, lalu tempel di
+              kolom kiri. Dipakai untuk memilih ONU yang statusnya working. Boleh dikosongkan kalau
+              semua ONU mau diproses.
+            </li>
+            <li>
+              Jalankan <code>show running-config</code>, copy semua hasilnya, lalu tempel di kolom
+              kanan. Dipakai untuk mengecek tcont, gemport, dan service-port yang sudah terpakai di
+              tiap ONU.
+            </li>
+            <li>
+              Pilih mode di bawah, cek hasil analisanya, lalu copy per bagian dan paste ke OLT di
+              prompt <code>(config)#</code>.
+            </li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h2>1. Tempel output OLT</h2>
+          <div class="g2">
+            <div>
+              <label>Kiri: hasil show gpon onu state</label
+              ><textarea
+                id="st"
+                rows="10"
+                placeholder="1/4/6:16   enable  enable  working  1(GPON)&#10;1/4/6:17   enable  enable  LOS      1(GPON)"
+              ></textarea>
+            </div>
+            <div>
+              <label>Kanan: hasil show running-config</label
+              ><textarea
+                id="in"
+                rows="10"
+                placeholder="interface gpon-onu_1/7/14:30&#10;  name BSI&#10;  tcont 1 name t profile UP-200M&#10;  ...&#10;pon-onu-mng gpon-onu_1/7/14:30&#10;  service 1 gemport 1 vlan 300"
+              ></textarea>
+            </div>
+          </div>
+          <div class="g" style="margin-top: 10px">
+            <div>
+              <label>Filter port (opsional, pisah koma)</label
+              ><input id="fp" placeholder="1/7/14,1/7/15" />
+            </div>
+            <div>
+              <label>Jumlah ONU per bagian paste</label
+              ><input id="chunk" value="20" inputmode="numeric" />
+            </div>
+            <div>
+              <label>Hanya ONU dengan tcont 1 dan gemport 1 bernama</label
+              ><input id="t1" value="amc-inet" placeholder="kosong = semua ONU" />
+            </div>
+          </div>
+          <div class="w" style="margin-top: 10px">
+            <label>ONU yang diproses</label
+            ><select id="mode">
+              <option value="a">Semua yang terdaftar</option>
+              <option value="w">Hanya yang working (butuh kolom kiri terisi)</option>
+            </select>
+          </div>
+          <div class="m">
+            Slot selain 2 (3 sampai 8) belum diverifikasi di OLT lu, coba di satu ONU dulu.
+          </div>
+          <details style="margin-top: 12px">
+            <summary>Setting TR69</summary>
+            <div class="g" style="margin-top: 10px">
+              <div><label>Nama tcont/gemport</label><input id="tn" value="TR69" /></div>
+              <div><label>Profile upstream</label><input id="tu" value="UP-2M" /></div>
+              <div><label>Profile downstream</label><input id="td" value="DOWN-2M" /></div>
+              <div><label>VLAN TR69</label><input id="tv" value="100" inputmode="numeric" /></div>
+            </div>
+          </details>
+        </div>
+
+        <div class="card">
+          <h2>2. Hasil analisa</h2>
+          <div class="stat" id="stat"></div>
+          <div id="conf"></div>
+        </div>
+
+        <div class="card">
+          <h2>3. Config siap paste (hanya ONU yang aman)</h2>
+          <div class="row">
+            <div class="m" id="sum" style="margin: 0">Belum ada data</div>
+            <button class="p" id="all">Copy semua</button>
+          </div>
+          <div id="parts"></div>
+        </div>
+      </section>
+    </main>
+    <script src="js/settings.js"></script>
+    <script src="js/generator.js"></script>
+    <script src="js/batch.js"></script>
+    <script src="js/nav.js"></script>
+  </body>
+</html>
