@@ -18,6 +18,7 @@
     "vlan",
     "pu",
     "pp",
+    "trslot",
   ];
   var queue = [],
     descTouched = false,
@@ -42,8 +43,36 @@
   function val(i) {
     return $(i).value.trim();
   }
+  function trBlock(f, o, n, acs) {
+    return [
+      "interface gpon-onu_" + f + ":" + o,
+      "  tcont " + n + " name " + TR_NAME + " profile " + TR_UP,
+      "  gemport " + n + " name " + TR_NAME + " tcont " + n,
+      "  gemport " + n + " traffic-limit downstream " + TR_DOWN,
+      "  service-port " + n + " vport " + n + " user-vlan " + TR_VLAN + " vlan " + TR_VLAN,
+      "exit",
+      "pon-onu-mng gpon-onu_" + f + ":" + o,
+      "  service " + n + " gemport " + n + " vlan " + TR_VLAN,
+      "  tr069-mgmt 1 acs " +
+        acs.url +
+        " validate basic username " +
+        acs.user +
+        " password " +
+        acs.pass,
+      "  tr069-mgmt 1 tag pri 1 vlan " + TR_VLAN,
+      "exit",
+    ].join("\n");
+  }
   function build() {
-    var isNew = $("newonu").checked;
+    var mode = $("gmode").value,
+      isNew = mode === "new";
+    if (mode === "tr") {
+      if (!val("port") || !val("onu")) return "";
+      var n = parseInt(val("trslot"), 10);
+      if (!(n >= 2 && n <= 8)) n = 2;
+      var f2 = val("rack") + "/" + val("slot") + "/" + val("port");
+      return trBlock(f2, val("onu"), n, window.AcsSettings.get());
+    }
     var req = ["port", "onu", "name", "up", "vlan", "pu", "pp"];
     if (isNew) req.push("sn");
     for (var i = 0; i < req.length; i++) if (!val(req[i])) return "";
@@ -105,7 +134,7 @@
       .join("\n");
   }
   function render() {
-    if ($("tr").checked && !window.AcsSettings.get().url) {
+    if (($("tr").checked || $("gmode").value === "tr") && !window.AcsSettings.get().url) {
       $("out").textContent =
         "Isi Setting ACS dulu (tombol di pojok kanan atas), atau matikan checkbox TR69.";
       return "";
@@ -168,7 +197,12 @@
     render();
     save();
   });
-  $("newonu").addEventListener("change", render);
+  $("gmode").addEventListener("change", function () {
+    var trOnly = $("gmode").value === "tr";
+    $("trslotwrap").hidden = !trOnly;
+    $("pelanggan").hidden = trOnly;
+    render();
+  });
   window.addEventListener("beforeunload", save);
   document.addEventListener("acschange", render);
   render();

@@ -50,10 +50,14 @@
 
         <div class="card">
           <h2>Lokasi ONU</h2>
-          <label class="ck" style="margin: 0 0 12px"
-            ><input type="checkbox" id="newonu" checked /> ONU baru (uncfg): ikut daftarin ke OLT.
-            Uncheck kalau sudah terdaftar dan cuma ganti data</label
-          >
+          <div class="w" style="margin-bottom: 12px">
+            <label>Mode</label>
+            <select id="gmode">
+              <option value="new">ONU baru (uncfg): daftarkan ke OLT + config lengkap</option>
+              <option value="edit">ONU sudah terdaftar: ganti data (tanpa registrasi)</option>
+              <option value="tr">ONU sudah ada: tambah config TR69 saja</option>
+            </select>
+          </div>
           <div class="g">
             <div class="c3">
               <label>Rack</label><input id="rack" value="1" inputmode="numeric" />
@@ -63,6 +67,9 @@
             </div>
             <div class="c3"><label>PON port</label><input id="port" inputmode="numeric" /></div>
             <div class="c3"><label>ONU ID</label><input id="onu" inputmode="numeric" /></div>
+            <div class="c3" id="trslotwrap" hidden>
+              <label>Slot TR69</label><input id="trslot" value="2" inputmode="numeric" />
+            </div>
             <div class="w">
               <label>SN ONU (wajib kalau ONU baru)</label
               ><input id="sn" autocapitalize="characters" placeholder="ZTEGxxxxxxxx" />
@@ -77,7 +84,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card" id="pelanggan">
           <h2>Pelanggan</h2>
           <div class="g">
             <div class="c6"><label>Name</label><input id="name" placeholder="W36/27" /></div>
@@ -114,6 +121,12 @@
         </div>
       </section>
       <section id="v2" hidden>
+        <p class="lead">
+          Menambahkan config TR69 ke banyak ONU sekaligus. Hanya ONU dengan tcont 1 dan gemport 1
+          bernama amc-inet yang diproses (bisa diubah di kolom filter). ONU yang slot 2-nya kosong
+          memakai slot 2, kalau sudah terpakai otomatis memakai slot kosong berikutnya.
+        </p>
+
         <div class="note">
           <b>Cara ambil data</b>
           <ol>
